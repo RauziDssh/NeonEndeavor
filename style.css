@@ -16,7 +16,6 @@
     box-sizing: border-box;
     user-select: none;
     -webkit-user-select: none;
-    touch-action: none; /* prevent default zooming and scrolling */
 }
 
 body {
@@ -47,6 +46,7 @@ body {
     height: 100%;
     display: block;
     z-index: 1;
+    touch-action: none;
 }
 
 .hidden {
@@ -623,6 +623,7 @@ body {
     height: 100%;
     z-index: 5;
     display: flex;
+    touch-action: none;
 }
 
 #touch-steer-zone {
