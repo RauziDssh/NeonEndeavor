@@ -884,6 +884,9 @@ class Game {
         } else if (type === 'success') {
             container.classList.add('success-flash');
             setTimeout(() => container.classList.remove('success-flash'), 200);
+        } else if (type === 'gate') {
+            container.classList.add('gate-flash');
+            setTimeout(() => container.classList.remove('gate-flash'), 200);
         }
     }
 
@@ -1023,8 +1026,8 @@ class Game {
         for (let gate of this.gates) {
             let zDiff = gate.z - this.playerZ;
             
-            // If the player is within range of the gate and has not collected it yet
-            if (zDiff > -50 && zDiff < 250 && !gate.collected && !gate.missed) {
+            // Resolve the gate the instant it crosses the bottom of the screen (zDiff <= 550)
+            if (zDiff <= 550 && !gate.collected && !gate.missed) {
                 let gateRoadX = gate.x / (ROAD_WIDTH / 2);
                 let xDiff = Math.abs(this.playerX - gateRoadX);
                 
@@ -1037,19 +1040,17 @@ class Game {
                     this.steeringAccuracy = this.steeringAccuracy * 0.85 + 0.15; // Rolling sync average up
                     
                     // Create collection particles (purple burst)
-                    this.createExplosion(gate.x, gate.y + 40, gate.z, '#ba55d3');
+                    this.createExplosion(gate.x, gate.y + 40, gate.z, '#d800ff');
                     sound.playChime();
-                    this.triggerFlash('success');
+                    this.triggerFlash('gate'); // Special purple flash feedback!
+                } else {
+                    // Missed!
+                    gate.missed = true;
+                    this.combo = 0; // Break combo
+                    this.energy = Math.max(0, this.energy - 4.5); // Lose some energy
+                    this.steeringAccuracy = this.steeringAccuracy * 0.85; // Rolling sync average down
+                    this.triggerFlash('damage');
                 }
-            }
-            
-            // Check if passed without collecting (Missed)
-            if (zDiff <= -50 && !gate.collected && !gate.missed) {
-                gate.missed = true;
-                this.combo = 0; // Break combo
-                this.energy = Math.max(0, this.energy - 4.5); // Lose some energy
-                this.steeringAccuracy = this.steeringAccuracy * 0.85; // Rolling sync average down
-                this.triggerFlash('damage');
             }
         }
 
@@ -1315,7 +1316,7 @@ class Game {
         
         // Find visible gates
         for (let g of this.gates) {
-            if (g.segmentIndex >= startSegIndex && g.segmentIndex < maxDraw && !g.collected) {
+            if (g.segmentIndex >= startSegIndex && g.segmentIndex < maxDraw && !g.collected && !g.missed) {
                 visibleObjects.push({ type: 'gate', data: g });
             }
         }
