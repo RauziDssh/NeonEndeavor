@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Endeavor - MultiTask Racing Game</title>
+    <!-- load futuristic fonts from google fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- background canvas for game rendering -->
+        <canvas id="game-canvas"></canvas>
+
+        <!-- HUD (Heads Up Display) overlay -->
+        <div id="hud" class="hidden">
+            <!-- Top bar with target instruction and lives -->
+            <div class="hud-top">
+                <div class="hud-box target-instruction-box">
+                    <span class="label">TARGET INSTRUCTION</span>
+                    <div id="target-instruction">TAP GREEN CUBES ONLY!</div>
+                </div>
+            </div>
+
+            <!-- Left and Right sides overlay -->
+            <div class="hud-left">
+                <div class="hud-box">
+                    <span class="label">SPEED</span>
+                    <div id="hud-speed" class="value">0 <span class="unit">KM/H</span></div>
+                </div>
+                <div class="hud-box">
+                    <span class="label">ROAD SYNC</span>
+                    <div class="sync-bar-container">
+                        <div id="hud-sync-bar" class="sync-bar"></div>
+                    </div>
+                    <div id="hud-sync-combo" class="value sub-value">COMBO x0</div>
+                </div>
+            </div>
+
+            <div class="hud-right">
+                <div class="hud-box">
+                    <span class="label">SCORE</span>
+                    <div id="hud-score" class="value">000,000</div>
+                </div>
+                <div class="hud-box">
+                    <span class="label">ENERGY</span>
+                    <div class="energy-bar-container">
+                        <div id="hud-energy-bar" class="energy-bar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Start Menu Screen -->
+        <div id="start-menu" class="screen">
+            <div class="menu-content">
+                <div class="game-logo">
+                    <h1>NEON</h1>
+                    <h1 class="highlight">ENDEAVOR</h1>
+                </div>
+                <p class="tagline">STEER THE ROAD & TARGET THE CREATURES</p>
+                
+                <div class="instructions-card">
+                    <div class="inst-section">
+                        <h3>■ ゲームルール (マルチタスク・トレーニング)</h3>
+                        <p style="margin-bottom: 8px; font-weight: bold; color: var(--neon-pink);">ステアリング操作とターゲット判定の2つのタスクを同時にこなします。</p>
+                        <ul style="margin: 0; padding-left: 18px; font-size: 0.82rem; color: rgba(255, 255, 255, 0.85); line-height: 1.5;">
+                            <li style="margin-bottom: 4px;"><strong>紫の三角 (チェックポイント)</strong>: コース上の紫の三角を通過してください。通過するとシンク率（SYNC）とコンボがアップし、見逃すとコンボが途切れエネルギーが減少します。</li>
+                            <li style="margin-bottom: 4px;"><strong>警告コーン (障害物)</strong>: 赤と黄色のコーンは障害物です。衝突すると大ダメージを受け、大きく減速します。</li>
+                            <li style="margin-bottom: 4px;"><strong>ターゲット判定 (Go/No-Go)</strong>: 画面上部の指示アナウンス（例: 「TAP GREEN OCTOPUSES ONLY!」）を確認し、<strong>指示に合致する生き物が空中を飛び跳ねている間だけ</strong>、TARGETボタンまたはスペースキーを押してください（見逃しや条件不一致時のタップはダメージ）。</li>
+                        </ul>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid rgba(255, 255, 255, 0.08); margin: 15px 0;">
+                    <div class="inst-section">
+                        <h3>■ 操作方法 (PC / キーボード)</h3>
+                        <p><strong>左右ステアリング</strong>: <code>←</code> / <code>→</code> キー ｜ <code>A</code> / <code>D</code> キー</p>
+                        <p><strong>ターゲット決定 (Go)</strong>: <code>スペースキー</code> ｜ 右下のTARGETボタンをクリック</p>
+                    </div>
+                    <div class="inst-section">
+                        <h3>■ 操作方法 (スマホ / タッチ・センサー)</h3>
+                        <p><strong>左右ステアリング</strong>: スマホを左右に傾ける (ジャイロ) ｜ 画面左側をスライド (タッチ)</p>
+                        <p><strong>ターゲット決定 (Go)</strong>: 画面右下の <strong>TARGETボタン</strong> をタップ</p>
+                    </div>
+                </div>
+
+                <div class="setting-toggle-container">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-dynamic-switching" checked>
+                        <span class="slider"></span>
+                    </label>
+                    <div class="toggle-text">
+                        <span class="toggle-title">Dynamic Target Switching <span class="badge-original">ORIGINAL FEATURE</span></span>
+                        <span class="toggle-subtitle">プレイ中に目標指示が18秒ごとに変化します（OFF時は開始時のルール固定）</span>
+                    </div>
+                </div>
+
+                <div class="menu-buttons">
+                    <button id="btn-play-gyro" class="btn btn-primary">
+                        <span class="btn-title">PLAY WITH GYRO</span>
+                        <span class="btn-sub">Smartphone Tilt (Calibrates on click)</span>
+                    </button>
+                    <button id="btn-play-touch" class="btn btn-secondary">
+                        <span class="btn-title">PLAY WITH TOUCH / KEYBOARD</span>
+                        <span class="btn-sub">Left side drag to steer | Right side tap</span>
+                    </button>
+                </div>
+
+                <div class="calibration-overlay hidden" id="calibration-popup">
+                    <div class="calibration-content">
+                        <div class="spinner"></div>
+                        <p>Keep your phone upright and steady...</p>
+                        <p class="sub">Calibrating gyroscope sensor</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="screen hidden">
+            <div class="menu-content">
+                <h1 class="game-over-title">MISSION OVER</h1>
+                
+                <div class="score-display">
+                    <span class="label">FINAL SCORE</span>
+                    <span id="final-score" class="value highlight">000,000</span>
+                    <span id="new-high-score" class="high-score-badge hidden">NEW HIGH SCORE!</span>
+                </div>
+
+                <div class="stats-card">
+                    <h3>MISSION STATS</h3>
+                    <div class="stat-row">
+                        <span>Steering Sync Accuracy</span>
+                        <span id="stat-sync" class="stat-val">0%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Target Hits (Go)</span>
+                        <span id="stat-hits" class="stat-val">0 / 0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Target Errors (No-Go)</span>
+                        <span id="stat-errors" class="stat-val">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Obstacle Collisions</span>
+                        <span id="stat-collisions" class="stat-val">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Peak Dynamic Level</span>
+                        <span id="stat-level" class="stat-val">Level 1</span>
+                    </div>
+                </div>
+
+                <div class="menu-buttons">
+                    <button id="btn-retry" class="btn btn-primary">
+                        <span class="btn-title">RETRY MISSION</span>
+                    </button>
+                    <button id="btn-quit" class="btn btn-secondary">
+                        <span class="btn-title">BACK TO MENU</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- On-Screen Touch Controls (Hidden on desktop via CSS, visible on mobile) -->
+        <div id="touch-controls" class="hidden">
+            <!-- Left half of the screen handles steering if gyro is off or fallback is active -->
+            <div id="touch-steer-zone">
+                <div class="steer-hint">
+                    <span class="arrow">◀</span>
+                    <span class="hint-text">DRAG TO STEER</span>
+                    <span class="arrow">▶</span>
+                </div>
+                <div id="touch-steer-handle" class="hidden"></div>
+            </div>
+            
+            <!-- Right half of the screen handles target tapping -->
+            <div id="touch-action-zone">
+                <div id="touch-target-btn">
+                    <div class="crosshair-icon">
+                        <div class="circle-outer"></div>
+                        <div class="circle-inner"></div>
+                        <div class="line-h"></div>
+                        <div class="line-v"></div>
+                    </div>
+                    <span class="btn-label">TARGET</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
