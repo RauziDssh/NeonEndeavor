@@ -1026,12 +1026,12 @@ class Game {
         for (let gate of this.gates) {
             let zDiff = gate.z - this.playerZ;
             
-            // Resolve the gate the instant it crosses the bottom of the screen (zDiff <= 550)
-            if (zDiff <= 550 && !gate.collected && !gate.missed) {
+            // Check for collection while the gate is close to the ship (zDiff is between 400 and 650)
+            if (zDiff <= 650 && zDiff >= 400 && !gate.collected && !gate.missed) {
                 let gateRoadX = gate.x / (ROAD_WIDTH / 2);
                 let xDiff = Math.abs(this.playerX - gateRoadX);
                 
-                if (xDiff < 0.60) {
+                if (xDiff < 0.85) {
                     // Collected!
                     gate.collected = true;
                     this.score += Math.round(250 * (1 + this.combo * 0.05));
@@ -1043,14 +1043,16 @@ class Game {
                     this.createExplosion(gate.x, gate.y + 40, gate.z, '#d800ff');
                     sound.playChime();
                     this.triggerFlash('gate'); // Special purple flash feedback!
-                } else {
-                    // Missed!
-                    gate.missed = true;
-                    this.combo = 0; // Break combo
-                    this.energy = Math.max(0, this.energy - 4.5); // Lose some energy
-                    this.steeringAccuracy = this.steeringAccuracy * 0.85; // Rolling sync average down
-                    this.triggerFlash('damage');
                 }
+            }
+            // If the gate has passed behind the ship (zDiff < 400) and was not collected, mark as missed
+            else if (zDiff < 400 && !gate.collected && !gate.missed) {
+                // Missed!
+                gate.missed = true;
+                this.combo = 0; // Break combo
+                this.energy = Math.max(0, this.energy - 4.5); // Lose some energy
+                this.steeringAccuracy = this.steeringAccuracy * 0.85; // Rolling sync average down
+                this.triggerFlash('damage');
             }
         }
 
