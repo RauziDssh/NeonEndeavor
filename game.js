@@ -1065,12 +1065,14 @@ class Game {
         for (let obstacle of this.obstacles) {
             // Collision zone is when Z matches and X coordinates align
             let zDiff = obstacle.z - this.playerZ;
-            if (zDiff > -50 && zDiff < 250 && !obstacle.collided) {
+            // Narrow the depth window to avoid premature collisions before reaching the obstacle
+            if (zDiff > -30 && zDiff < 80 && !obstacle.collided) {
                 // We are in collision depth range, check X position overlap
                 let obstacleRoadX = obstacle.x / (ROAD_WIDTH / 2); // normalize obstacle X relative to half road width
                 let xDiff = Math.abs(this.playerX - obstacleRoadX);
                 
-                if (xDiff < 0.35) {
+                // Loosen the horizontal collision tolerance (xDiff < 0.22 instead of 0.35)
+                if (xDiff < 0.22) {
                     // CRASH!
                     obstacle.collided = true;
                     this.speed = 10; // Drop speed immediately
