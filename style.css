@@ -243,6 +243,11 @@ body {
     z-index: 101;
     overflow-y: auto;
     max-height: 90vh;
+    touch-action: pan-y !important;
+}
+
+.menu-content * {
+    touch-action: pan-y !important;
 }
 
 .game-logo h1 {
