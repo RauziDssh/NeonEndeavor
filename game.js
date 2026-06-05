@@ -1031,7 +1031,7 @@ class Game {
                 let gateRoadX = gate.x / (ROAD_WIDTH / 2);
                 let xDiff = Math.abs(this.playerX - gateRoadX);
                 
-                if (xDiff < 0.40) {
+                if (xDiff < 0.60) {
                     // Collected!
                     gate.collected = true;
                     this.score += Math.round(250 * (1 + this.combo * 0.05));
