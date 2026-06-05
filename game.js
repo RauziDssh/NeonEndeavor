@@ -318,6 +318,7 @@ class Game {
         this.startMenu = document.getElementById('start-menu');
         this.gameOverScreen = document.getElementById('game-over-screen');
         this.hud = document.getElementById('hud');
+        this.touchControls = document.getElementById('touch-controls');
         
         // HUD elements
         this.hudScore = document.getElementById('hud-score');
@@ -429,6 +430,7 @@ class Game {
             this.touchStartX = touch.clientX;
             this.touchCurrentX = touch.clientX;
             this.isSteerTouching = true;
+            this.steerTouchId = touch.identifier; // track touch by unique identifier
             
             // Position the visual steering handle
             steerHandle.classList.remove('hidden');
@@ -437,10 +439,10 @@ class Game {
 
         steerZone.addEventListener('touchmove', (e) => {
             if (!this.isSteerTouching) return;
-            // Find active touch on left side
+            // Find active touch matching our identifier
             let activeTouch = null;
             for (let i = 0; i < e.touches.length; i++) {
-                if (e.touches[i].clientX < window.innerWidth / 2) {
+                if (e.touches[i].identifier === this.steerTouchId) {
                     activeTouch = e.touches[i];
                     break;
                 }
@@ -774,10 +776,11 @@ class Game {
         // Set first instruction rule
         this.changeTargetInstruction();
         
-        // Hide screens, show HUD
+        // Hide screens, show HUD and touch controls
         this.startMenu.classList.add('hidden');
         this.gameOverScreen.classList.add('hidden');
         this.hud.classList.remove('hidden');
+        this.touchControls.classList.remove('hidden');
         
         sound.startBGM();
         
@@ -790,6 +793,7 @@ class Game {
         sound.stopBGM();
         this.gameOverScreen.classList.add('hidden');
         this.hud.classList.add('hidden');
+        this.touchControls.classList.add('hidden');
         this.startMenu.classList.remove('hidden');
     }
 
@@ -1158,6 +1162,7 @@ class Game {
         
         // Show Game Over UI
         this.hud.classList.add('hidden');
+        this.touchControls.classList.add('hidden');
         this.gameOverScreen.classList.remove('hidden');
         
         // Set stats
